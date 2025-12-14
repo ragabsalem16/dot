@@ -1721,7 +1721,7 @@
 
         closeCheckout.addEventListener('click', () => checkoutModal.style.display = 'none');
 
-
+        
         // معالجة إرسال الطلب
         checkoutForm.addEventListener('submit', function(e) {
             e.preventDefault();
@@ -1747,7 +1747,7 @@
                 cart_items: cartText,
                 order_total: total.toFixed(2) + " egp"
             };
-
+console.log("البيانات المرسلة: ", Data);
             // إرسال الطلب عبر EmailJS
             emailjs.send("service_9m858ii", "template_nuxmeti", Data)
                 .then(() => {
@@ -1796,4 +1796,4 @@
 
 </body>
 
-</html>
+    </html>
