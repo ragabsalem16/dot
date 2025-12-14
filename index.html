@@ -1543,10 +1543,14 @@
         </div>
     </div>
 
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js">
+    </script>
     <script type="text/javascript">
-        emailjs.init('jHkdaZe3wQ4Bp00-z')
+        (function() {
+            emailjs.init({
+                publicKey: "jHkdaZe3wQ4Bp00-z",
+            });
+        })();
     </script>
 
     <!-- ======= Footer ======= -->
@@ -1639,7 +1643,7 @@
                 div.classList.add('cart-item');
                 div.innerHTML = `
                 <div class="cart-item-details">
-                    <strong>${item.name}</strong> - ${item.price.toFixed(2)} ر.س
+                    <strong>${item.name}</strong> - ${item.price.toFixed(2)} egp 
                 </div>
                 <div class="cart-item-controls">
                     <div class="quantity-control">
@@ -1653,7 +1657,7 @@
                 cartItemsDiv.appendChild(div);
                 total += item.price * item.quantity;
             });
-            cartTotalSpan.textContent = total.toFixed(2) + " ر.س";
+            cartTotalSpan.textContent = total.toFixed(2) + "egp";
         }
 
         function changeQuantity(id, delta) {
@@ -1708,14 +1712,15 @@
             let summaryHTML = '';
             let total = 0;
             cart.forEach(item => {
-                summaryHTML += `<p>${item.name} x${item.quantity} <strong>${(item.price * item.quantity).toFixed(2)} ر.س</strong></p>`;
+                summaryHTML += `<p>${item.name} x${item.quantity} <strong>${(item.price * item.quantity).toFixed(2)}egp </strong></p>`;
                 total += item.price * item.quantity;
             });
-            summaryHTML += `<p><strong>الإجمالي: ${total.toFixed(2)} ر.س</strong></p>`;
+            summaryHTML += `<p><strong>الإجمالي: ${total.toFixed(2)} egp </strong></p>`;
             checkoutSummary.innerHTML = summaryHTML;
         });
 
         closeCheckout.addEventListener('click', () => checkoutModal.style.display = 'none');
+
 
         // معالجة إرسال الطلب
         checkoutForm.addEventListener('submit', function(e) {
@@ -1727,20 +1732,26 @@
             const payment = document.getElementById('paymentMethod').value;
 
             let cartText = '';
+            let total = 0;
             cart.forEach(item => {
-                cartText += `• ${item.name} x${item.quantity} = ${(item.price * item.quantity).toFixed(2)} ر.س\n`;
+                cartText += `• ${item.name} x${item.quantity} = ${(item.price * item.quantity).toFixed(2)} egp\n`;
+                total += item.price * item.quantity;
             });
 
+            const Data = {
+                to_email: "ragabsalem665@gmail.com",
+                customer_name: name,
+                customer_phone: phone,
+                customer_address: address,
+                payment_method: payment,
+                cart_items: cartText,
+                order_total: total.toFixed(2) + " egp"
+            };
+
             // إرسال الطلب عبر EmailJS
-            emailjs.send("service_9m858ii", "template_nuxmeti", {
-                    customer_name: name,
-                    customer_phone: phone,
-                    customer_address: address,
-                    payment_method: payment,
-                    cart_items: cartText
-                })
+            emailjs.send("service_9m858ii", "template_nuxmeti", Data)
                 .then(() => {
-                    alert("✔️ تم إرسال الطلب بنجاح!");
+                    alert("تم إرسال الطلب بنجاح!");
                     cart = [];
                     updateCart();
                     checkoutModal.style.display = 'none';
@@ -1748,7 +1759,7 @@
                 })
                 .catch(err => {
                     console.error(err);
-                    alert("❌ حدث خطأ أثناء إرسال الطلب");
+                    alert("حدث خطأ أثناء إرسال الطلب");
                 });
         });
 
