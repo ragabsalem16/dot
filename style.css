@@ -1,3 +1,4 @@
+
   :root {
      --primary-bg-light: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
      --section-bg: #ffffff;
@@ -1289,4 +1290,4 @@
          font-size: 0.8em;
          padding: 0 10px;
      }
- }
+       }
