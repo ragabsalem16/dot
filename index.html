@@ -224,30 +224,43 @@
         <div class="modal-content">
             <span class="close-btn" id="closeCheckout">&times;</span>
             <h3>بيانات الدفع</h3>
-            <div class="checkout-summary" id="checkoutSummary"></div>
-            <form id="checkoutForm" method="POST" action="https://submify.vercel.app/ragabsalem665@gmail.com">
-                <div class="form-group">
-                    <label for="customerName">الاسم:</label>
-                    <input type="text" id="customerName" required>
-                </div>
-                <div class="form-group">
-                    <label for="customerPhone">رقم الهاتف:</label>
-                    <input type="text" id="customerPhone" required>
-                </div>
-                <div class="form-group">
-                    <label for="customerAddress">العنوان:</label>
-                    <textarea id="customerAddress" rows="2" required></textarea>
-                </div>
-                <div class="form-group">
-                    <label for="paymentMethod">طريقة الدفع:</label>
-                    <select id="paymentMethod" required>
-                    <option value="كاش عند الاستلام">كاش عند الاستلام</option>
-                    <option value="تحويل بنكي">تحويل بنكي</option>
-                </select>
-                </div>
-                <button type="submit" class="btn" id="placeOrderBtn">إتمام الطلب</button>
-            </form>
 
+            <div class="checkout-summary" id="checkoutSummary"></div>
+
+            <form id="checkoutForm" method="POST" action="https://submify.vercel.app/ragabsalem665@gmail.com">
+
+                <!-- الاسم -->
+                <div class="form-group">
+                    <label>الاسم:</label>
+                    <input type="text" name="name" required>
+                </div>
+
+                <!-- الهاتف -->
+                <div class="form-group">
+                    <label>رقم الهاتف:</label>
+                    <input type="text" name="phone" required>
+                </div>
+
+                <!-- العنوان -->
+                <div class="form-group">
+                    <label>العنوان:</label>
+                    <textarea name="address" rows="2" required></textarea>
+                </div>
+
+                <!-- طريقة الدفع -->
+                <div class="form-group">
+                    <label>طريقة الدفع:</label>
+                    <select name="payment_method" required>
+          <option value="كاش عند الاستلام">كاش عند الاستلام</option>
+          <option value="تحويل بنكي">تحويل بنكي</option>
+        </select>
+                </div>
+
+                <!-- ملخص الطلب (هيتبعت في الإيميل) -->
+                <input type="hidden" name="order_details" id="orderDetailsInput">
+
+                <button type="submit" class="btn">إتمام الطلب</button>
+            </form>
         </div>
     </div>
 
