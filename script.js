@@ -1,4 +1,4 @@
-// Donut Shop - Cart and Checkout System (No EmailJS)
+// Donut Shop - Cart and Checkout System with Submify
 
 // ======= Cart Logic =======
 let cart = [];
@@ -13,6 +13,7 @@ const checkoutModal = document.getElementById('checkoutModal');
 const closeCheckout = document.getElementById('closeCheckout');
 const checkoutForm = document.getElementById('checkoutForm');
 const checkoutSummary = document.getElementById('checkoutSummary');
+const orderDetailsInput = document.getElementById('orderDetailsInput');
 
 function updateCart() {
     cartBadge.textContent = cart.length;
@@ -37,7 +38,7 @@ function updateCart() {
         cartItemsDiv.appendChild(div);
         total += item.price * item.quantity;
     });
-    cartTotalSpan.textContent = total.toFixed(2) + "egp";
+    cartTotalSpan.textContent = total.toFixed(2) + " egp";
 }
 
 function changeQuantity(id, delta) {
@@ -61,7 +62,8 @@ function addToCart(item) {
     if (exist) {
         exist.quantity++;
     } else {
-        cart.push({...item,
+        cart.push({
+            ...item,
             quantity: 1
         });
     }
@@ -69,103 +71,135 @@ function addToCart(item) {
 }
 
 // إضافة المنتجات للسلة
-document.querySelectorAll('.add-to-cart-btn, .add-to-cart-icon').forEach(btn => {
-    btn.addEventListener('click', function(e) {
-        const parent = e.target.closest('[data-name]');
-        if (parent) {
-            addToCart({
-                id: parent.dataset.id,
-                name: parent.dataset.name,
-                price: parseFloat(parent.dataset.price)
+document.addEventListener('DOMContentLoaded', function() {
+    // إضافة المنتجات للسلة
+    document.querySelectorAll('.add-to-cart-btn, .add-to-cart-icon').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            const parent = e.target.closest('[data-name]');
+            if (parent) {
+                addToCart({
+                    id: parent.dataset.id,
+                    name: parent.dataset.name,
+                    price: parseFloat(parent.dataset.price)
+                });
+            }
+        });
+    });
+
+    // فتح وإغلاق النوافذ المنبثقة
+    cartBtn.addEventListener('click', () => cartModal.style.display = 'block');
+    closeCart.addEventListener('click', () => cartModal.style.display = 'none');
+
+    checkoutBtn.addEventListener('click', () => {
+        if (cart.length === 0) {
+            alert('السلة فارغة! يرجى إضافة منتجات أولاً');
+            return;
+        }
+        cartModal.style.display = 'none';
+        checkoutModal.style.display = 'block';
+        let summaryHTML = '';
+        let total = 0;
+        cart.forEach(item => {
+            summaryHTML += `<p>${item.name} x${item.quantity} <strong>${(item.price * item.quantity).toFixed(2)} egp </strong></p>`;
+            total += item.price * item.quantity;
+        });
+        summaryHTML += `<p><strong>الإجمالي: ${total.toFixed(2)} egp </strong></p>`;
+        checkoutSummary.innerHTML = summaryHTML;
+    });
+
+    closeCheckout.addEventListener('click', () => checkoutModal.style.display = 'none');
+
+    // معالجة إرسال الطلب مع Submify
+    checkoutForm.addEventListener('submit', function(e) {
+        e.preventDefault(); // نمنع الإرسال الافتراضي
+
+        if (cart.length === 0) {
+            alert('السلة فارغة! يرجى إضافة منتجات أولاً');
+            return;
+        }
+
+        // تحضير بيانات الطلب
+        let cartText = '';
+        let total = 0;
+        cart.forEach(item => {
+            cartText += `${item.name} x${item.quantity} = ${(item.price * item.quantity).toFixed(2)} egp | `;
+            total += item.price * item.quantity;
+        });
+
+        // إضافة بيانات العميل
+        const customerName = document.querySelector('input[name="name"]').value;
+        const customerPhone = document.querySelector('input[name="phone"]').value;
+        const customerAddress = document.querySelector('textarea[name="address"]').value;
+        const paymentMethod = document.querySelector('select[name="payment_method"]').value;
+
+        // إنشاء نص الطلب الكامل
+        const fullOrderText = `
+بيانات العميل:
+الاسم: ${customerName}
+الهاتف: ${customerPhone}
+العنوان: ${customerAddress}
+طريقة الدفع: ${paymentMethod}
+
+تفاصيل الطلب:
+${cartText}
+الإجمالي: ${total.toFixed(2)} egp
+        `;
+
+        // وضع البيانات في الحقل المخفي
+        orderDetailsInput.value = fullOrderText.trim();
+
+        // إرسال الطلب
+        const formData = new FormData(checkoutForm);
+
+        fetch('https://submify.vercel.app/ragabsalem665@gmail.com', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert('تم إرسال طلبك بنجاح! سنتواصل معك قريباً لتأكيد الطلب.');
+                    // إعادة تعيين السلة والنموذج
+                    cart = [];
+                    updateCart();
+                    checkoutForm.reset();
+                    checkoutModal.style.display = 'none';
+                } else {
+                    throw new Error('فشل في إرسال الطلب');
+                }
+            })
+            .catch(error => {
+                console.error('خطأ:', error);
+                alert('حدث خطأ في إرسال الطلب. يرجى المحاولة مرة أخرى.');
             });
+    });
+
+    // إغلاق النوافذ عند النقر خارجها
+    window.addEventListener('click', function(e) {
+        if (e.target === cartModal) {
+            cartModal.style.display = 'none';
+        }
+        if (e.target === checkoutModal) {
+            checkoutModal.style.display = 'none';
         }
     });
-});
 
-// فتح وإغلاق النوافذ المنبثقة
-cartBtn.addEventListener('click', () => cartModal.style.display = 'block');
-closeCart.addEventListener('click', () => cartModal.style.display = 'none');
+    // فلترة القائمة
+    document.querySelectorAll('.menu-tabs .tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            const filter = this.dataset.filter;
 
-checkoutBtn.addEventListener('click', () => {
-    cartModal.style.display = 'none';
-    checkoutModal.style.display = 'block';
-    let summaryHTML = '';
-    let total = 0;
-    cart.forEach(item => {
-        summaryHTML += `<p>${item.name} x${item.quantity} <strong>${(item.price * item.quantity).toFixed(2)}egp </strong></p>`;
-        total += item.price * item.quantity;
-    });
-    summaryHTML += `<p><strong>الإجمالي: ${total.toFixed(2)} egp </strong></p>`;
-    checkoutSummary.innerHTML = summaryHTML;
-});
+            // تحديث التبويبات النشطة
+            document.querySelectorAll('.menu-tabs .tab').forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
 
-closeCheckout.addEventListener('click', () => checkoutModal.style.display = 'none');
-
-
-// معالجة إرسال الطلب
-checkoutForm.addEventListener('submit', function(e) {
-    e.preventDefault();
-
-    const name = document.getElementById('customerName').value;
-    const phone = document.getElementById('customerPhone').value;
-    const address = document.getElementById('customerAddress').value;
-    const payment = document.getElementById('paymentMethod').value;
-
-    let cartText = '';
-    let total = 0;
-    cart.forEach(item => {
-        cartText += `• ${item.name} x${item.quantity} = ${(item.price * item.quantity).toFixed(2)} egp\n`;
-        total += item.price * item.quantity;
-    });
-
-
-    // Order data for display (without email sending)
-    const orderData = {
-        customer_name: name,
-        customer_phone: phone,
-        customer_address: address,
-        payment_method: payment,
-        cart_items: cartText,
-        order_total: total.toFixed(2) + " egp"
-    };
-    console.log("Order received:", orderData);
-
-    // Show success message
-    alert("تم استلام طلبك بنجاح! سنتواصل معك قريباً لتأكيد الطلب.");
-
-    // Reset cart and close modal
-    cart = [];
-    updateCart();
-    checkoutModal.style.display = 'none';
-    checkoutForm.reset();
-});
-
-// إغلاق النوافذ عند النقر خارجها
-window.addEventListener('click', function(e) {
-    if (e.target === cartModal) {
-        cartModal.style.display = 'none';
-    }
-    if (e.target === checkoutModal) {
-        checkoutModal.style.display = 'none';
-    }
-});
-
-// فلترة القائمة
-document.querySelectorAll('.menu-tabs .tab').forEach(tab => {
-    tab.addEventListener('click', function() {
-        const filter = this.dataset.filter;
-
-        // تحديث التبويبات النشطة
-        document.querySelectorAll('.menu-tabs .tab').forEach(t => t.classList.remove('active'));
-        this.classList.add('active');
-
-        // فلترة العناصر
-        document.querySelectorAll('.menu-item').forEach(item => {
-            if (filter === 'all' || item.dataset.category === filter) {
-                item.classList.remove('hidden');
-            } else {
-                item.classList.add('hidden');
-            }
+            // فلترة العناصر
+            document.querySelectorAll('.menu-item').forEach(item => {
+                if (filter === 'all' || item.dataset.category === filter) {
+                    item.classList.remove('hidden');
+                } else {
+                    item.classList.add('hidden');
+                }
+            });
         });
     });
 });
